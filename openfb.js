@@ -94,8 +94,23 @@ var openFB = (function () {
         var token = tokenStore.fbAccessToken,
             loginStatus = {};
         if (token) {
-            loginStatus.status = 'connected';
-            loginStatus.authResponse = {accessToken: token};
+            var url = 'https://graph.facebook.com/debug_token?input_token=' + token + '&access_token=' + token;
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        loginStatus.status = 'isConnected';
+                        loginStatus.authResponse = {accessToken: token};
+                        if (callback) callback(loginStatus);
+                    }
+                    else {
+                        loginStatus.status = 'unknown';
+                        if (callback) callback(loginStatus);
+                    }
+                }
+            };
+            xhr.open('GET', url, true);
+            xhr.send();
         } else {
             loginStatus.status = 'unknown';
         }
